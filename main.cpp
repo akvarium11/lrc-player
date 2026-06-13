@@ -5,6 +5,9 @@
 #include <thread>
 #include <chrono>
 
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
+
 using namespace std;
 
 void logger(int type, string message){
@@ -13,11 +16,25 @@ void logger(int type, string message){
 }
 
 int main() {
-    std::ifstream file("test.lrc"); 
+    ma_engine engine;
+    ma_result result = ma_engine_init(NULL, &engine);
+    if (result != MA_SUCCESS) {
+        logger(0, "Failed to initialize audio engine!");
+        return 1;
+    }
 
+    std::ifstream file("test.lrc"); 
     if (!file.is_open()) {
       logger(0, "Cant open file!");
+      ma_engine_uninit(&engine);
       return 1;
+    }
+
+    result = ma_engine_play_sound(&engine, "test.mp3", NULL);
+    if (result != MA_SUCCESS) {
+        logger(0, "Failed to play test.mp3!");
+        ma_engine_uninit(&engine);
+        return 1;
     }
 
     std::string line;
@@ -71,6 +88,8 @@ int main() {
       }
     }
     
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    ma_engine_uninit(&engine);
     return 0;
 }
 
