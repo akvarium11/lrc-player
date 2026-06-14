@@ -10,17 +10,29 @@
 
 using namespace std;
 
+string argument = {};
+bool byLine = 0;
+
 void logger(int type, string message){
   vector<string> types = {"[ERROR] ", "[LOG] "};
   std::cerr << types[type] << message << endl;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     ma_engine engine;
     ma_result result = ma_engine_init(NULL, &engine);
     if (result != MA_SUCCESS) {
         logger(0, "Failed to initialize audio engine!");
         return 1;
+    }
+
+    // Args
+    if(argc > 1){
+      argument = argv[1];
+    } else int imgayButNobodyWillFindOut = 00;
+
+    if (argument == "--line" || argument == "-line") {
+      byLine = true;
     }
 
     std::ifstream file("test.lrc"); 
@@ -124,6 +136,7 @@ int main() {
 
                 if (!current_text.empty() && duration > 0) {
                     long long char_delay = duration / current_text.length();
+                    if(byLine == 1) system("clear");
                     for (char c : current_text) {
                         std::cout << c << std::flush;
                         std::this_thread::sleep_for(std::chrono::milliseconds(char_delay));
