@@ -13,6 +13,14 @@ using namespace std;
 string argument = {};
 bool byLine = 0;
 
+void sysClear(){
+  #ifdef defined(_WIN32) || defined(_WIN64)
+    system("cls");
+  #else 
+    system("clear");
+  #endif
+}
+
 void logger(int type, string message){
   vector<string> types = {"[ERROR] ", "[LOG] "};
   std::cerr << types[type] << message << endl;
@@ -27,27 +35,52 @@ int main(int argc, char* argv[]) {
     }
 
     // Args
-    if(argc > 1){
-      argument = argv[1];
-    } else int imgayButNobodyWillFindOut = 00;
+    string musicFile = "";
+    string lrcFile = "";
 
-    if (argument == "--line" || argument == "-line") {
-      byLine = true;
-    }
+    for (int i = 1; i < argc; ++i) {
+        string argument = argv[i];
 
-    std::ifstream file("test.lrc"); 
+        if (argument == "--clear" || argument == "-c") {
+            byLine = true;
+        } 
+        else if (argument == "--music" || argument == "-m") {
+            if (i + 1 < argc) {
+                musicFile = argv[i + 1];
+                i++;
+            } else {
+                logger(0, "Missing file after --music flag!");
+                return 1;
+            }
+        }
+        else if (argument == "--lrc" || argument == "-l") {
+            if (i + 1 < argc) {
+                lrcFile = argv[i + 1];
+                i++;
+            } else {
+                logger(0, "Error: Missing file after --lrc flag!");
+                return 1;
+            }
+          }
+      }
+    if(musicFile == "") musicFile = "test.mp3";
+    if(lrcFile == "") lrcFile = "test.lrc";
+
+    std::ifstream file(lrcFile); 
     if (!file.is_open()) {
       logger(0, "Cant open file!");
       ma_engine_uninit(&engine);
       return 1;
     }
 
-    result = ma_engine_play_sound(&engine, "test.mp3", NULL);
+    result = ma_engine_play_sound(&engine, musicFile.c_str(), NULL);
     if (result != MA_SUCCESS) {
-        logger(0, "Failed to play test.mp3!");
+        logger(0, "Failed to play music, make sure its .mp3 file!");
         ma_engine_uninit(&engine);
         return 1;
     }
+
+    sysClear();
 
     std::string line;
     long long previous_ms = 0;
@@ -133,16 +166,9 @@ int main(int argc, char* argv[]) {
                 if (!has_cached_line) {
                     duration = 3000;
                 }
-
                 if (!current_text.empty() && duration > 0) {
                     long long char_delay = duration / current_text.length();
-                    if(byLine == 1){
-                      #if defined(_WIN32) || defined(_WIN64)
-                        system("cls");
-                      #else 
-                        system("clear");
-                      #endif
-                    }
+                    if(byLine == 1) sysClear();
                     for (char c : current_text) {
                         std::cout << c << std::flush;
                         std::this_thread::sleep_for(std::chrono::milliseconds(char_delay));
