@@ -136,7 +136,13 @@ int main(int argc, char* argv[]) {
 
                 if (!current_text.empty() && duration > 0) {
                     long long char_delay = duration / current_text.length();
-                    if(byLine == 1) system("clear");
+                    if(byLine == 1){
+                      #if defined(_WIN32) || defined(_WIN64)
+                        system("cls");
+                      #else 
+                        system("clear");
+                      #endif
+                    }
                     for (char c : current_text) {
                         std::cout << c << std::flush;
                         std::this_thread::sleep_for(std::chrono::milliseconds(char_delay));
